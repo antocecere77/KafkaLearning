@@ -27,7 +27,7 @@ public class TwitterProducer {
     String consumerSecret = "WOQevpQcrPJQ2Dw0VAIvPsSVGvnyc02B9J1joEm9hZSBg2fyuz";
     String token = "2919693094-aqJ3lqtAmr2o5uO6EgGKhm8QETi6TL57I6DtSbe";
     String secret = "pZTuaVDw3HyT97URMHsKEZMbioowUfnUE3qlmtUaKZSBi";
-    List<String> terms = Lists.newArrayList("bitcoin");
+    List<String> terms = Lists.newArrayList("bitcoin", "usa", "politcs", "sport", "soccer");
 
     Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
 
@@ -116,6 +116,11 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
         //Kafka 2.0 >= 1.1 so we can keep this as 5. Use 1 otherwise
         properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
+
+        // High throughput producer (at the expense of a bit of latency and CPU usage)
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20");
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32*1024)); // 32 KB batch size
 
         //Create the producer
         KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties);
