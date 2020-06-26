@@ -27,7 +27,7 @@ public class TwitterProducer {
     String consumerSecret = "WOQevpQcrPJQ2Dw0VAIvPsSVGvnyc02B9J1joEm9hZSBg2fyuz";
     String token = "2919693094-aqJ3lqtAmr2o5uO6EgGKhm8QETi6TL57I6DtSbe";
     String secret = "pZTuaVDw3HyT97URMHsKEZMbioowUfnUE3qlmtUaKZSBi";
-    List<String> terms = Lists.newArrayList("kafka");
+    List<String> terms = Lists.newArrayList("bitcoin");
 
     Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
 
@@ -109,6 +109,13 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        //Create a safer producer
+        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all");
+        properties.setProperty(ProducerConfig.RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
+        //Kafka 2.0 >= 1.1 so we can keep this as 5. Use 1 otherwise
+        properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
 
         //Create the producer
         KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties);
