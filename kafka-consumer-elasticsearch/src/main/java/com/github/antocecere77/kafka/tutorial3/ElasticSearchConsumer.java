@@ -1,5 +1,6 @@
 package com.github.antocecere77.kafka.tutorial3;
 
+import com.google.gson.JsonParser;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -28,6 +29,8 @@ import java.util.Properties;
 
 
 public class ElasticSearchConsumer {
+
+    private static JsonParser jsonParser = new JsonParser();
 
     public static RestHighLevelClient createClient() {
         // replace with your own credentials
@@ -71,6 +74,11 @@ public class ElasticSearchConsumer {
         return consumer;
     }
 
+    private static String extractIdFromTweet(String tweetJson) {
+        //Gson library
+        return jsonParser.parse(tweetJson).getAsJsonObject().get("id_str").getAsString();
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Logger logger = LoggerFactory.getLogger(ElasticSearchConsumer.class.getName());
@@ -85,14 +93,22 @@ public class ElasticSearchConsumer {
 
             for (ConsumerRecord<String, String> record : records){
 
+                // 2 strategies
+                //Kafka generic ID
+                //String id = record.topic() + "_" + record.partition() + "_" + record.offset();
+
+                //Twitter specific id
+                String id = extractIdFromTweet(record.value());
+
                 //Where we inserta data into ElaticSearch
                 IndexRequest indexRequest = new IndexRequest(
                         "twitter",
-                        "tweets"
+                        "tweets",
+                        id // this is to make our consumer idempotent
                 ).source(record.value(), XContentType.JSON);
 
                 IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-                String id = indexResponse.getId();
+
                 logger.info(id);
                 Thread.sleep(1000);
             }
@@ -101,5 +117,4 @@ public class ElasticSearchConsumer {
         //Close client gracefully
         //client.close();
     }
-
 }
